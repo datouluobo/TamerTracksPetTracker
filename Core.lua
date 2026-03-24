@@ -1,5 +1,6 @@
 local addonName, ns = ...
 TamerTracksPetTracker = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceEvent-3.0", "AceTimer-3.0", "AceConsole-3.0", "AceComm-3.0")
+TamerTracksPetTracker.iconPath = "Interface\\AddOns\\" .. addonName .. "\\pics\\logo_64.png"
 
 local AceSerializer = LibStub("AceSerializer-3.0")
 local LibDeflate = LibStub("LibDeflate")
@@ -150,8 +151,8 @@ function TamerTracksPetTracker:SetupMinimap()
     
     self.ldb = LDB:NewDataObject("TamerTracksPetTracker", {
         type = "launcher",
-        text = "TamerTracksPetTracker",
-        icon = "Interface\\AddOns\\TamerTracksPetTracker\\pics\\logo_64",
+        text = addonName,
+        icon = TamerTracksPetTracker.iconPath,
         OnClick = function(proxy, button)
             if button == "LeftButton" then
                 self:SlashHandler("") -- 切换主窗口显示
@@ -177,30 +178,37 @@ function TamerTracksPetTracker:SetupMinimap()
 end
 
 function TamerTracksPetTracker:ShowPetDropdown()
-    local menu = {
-        { text = "|cff2690E7选择追踪目标|r", isTitle = true, notCheckable = true },
-    }
-    
-    -- 获取当前的 PetID 列表并排序
-    local petIDs = {}
-    for id in pairs(ns.pets) do
-        table.insert(petIDs, id)
+    if not self.dropDownFrame then
+        self.dropDownFrame = CreateFrame("Frame", "TamerTracksPetTracker_DropDown", UIParent, "UIDropDownMenuTemplate")
     end
-    table.sort(petIDs)
     
-    for _, id in ipairs(petIDs) do
-        local petInfo = ns.pets[id]
-        table.insert(menu, {
-            text = petInfo.name .. " (" .. petInfo.zone .. ")",
-            func = function()
+    UIDropDownMenu_Initialize(self.dropDownFrame, function(frame, level, menuList)
+        local info = UIDropDownMenu_CreateInfo()
+        info.text = "|cff2690E7选择追踪目标|r"
+        info.isTitle = true
+        info.notCheckable = true
+        UIDropDownMenu_AddButton(info, level)
+        
+        -- 获取当前的 PetID 列表并排序
+        local petIDs = {}
+        for id in pairs(ns.pets) do
+            table.insert(petIDs, id)
+        end
+        table.sort(petIDs)
+        
+        for _, id in ipairs(petIDs) do
+            local petInfo = ns.pets[id]
+            info = UIDropDownMenu_CreateInfo()
+            info.text = petInfo.name .. " (" .. petInfo.zone .. ")"
+            info.func = function()
                 self:SetSelectedPet(id)
-            end,
-            checked = function() return self.db.global.selectedPet == id end,
-        })
-    end
+            end
+            info.checked = (self.db.global.selectedPet == id)
+            UIDropDownMenu_AddButton(info, level)
+        end
+    end, "MENU")
     
-    local dropMenu = CreateFrame("Frame", "TamerTracksPetTracker_Dropdown", UIParent, "UIDropDownMenuTemplate")
-    EasyMenu(menu, dropMenu, "cursor", 0, 0, "MENU")
+    ToggleDropDownMenu(1, nil, self.dropDownFrame, "cursor", 0, 0)
 end
 
 function TamerTracksPetTracker:SetSelectedPet(id)
