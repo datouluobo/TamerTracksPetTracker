@@ -66,3 +66,4 @@
 
 **由 [天堂暴风] 开发设计**
 * GitHub: [datouluobo/TamerTracksPetTracker](https://github.com/datouluobo/TamerTracksPetTracker)
+* CurseForge: [TamerTracksPetTracker](https://legacy.curseforge.com/wow/addons/tamertrackspettracker)
