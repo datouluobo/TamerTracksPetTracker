@@ -151,21 +151,23 @@ function TamerTracksPetTracker:SetupMinimap()
     self.ldb = LDB:NewDataObject("TamerTracksPetTracker", {
         type = "launcher",
         text = "TamerTracksPetTracker",
-        icon = "Interface\\Icons\\INV_Pet_Tracking",
+        icon = "Interface\\AddOns\\TamerTracksPetTracker\\pics\\logo_64",
         OnClick = function(proxy, button)
             if button == "LeftButton" then
                 self:SlashHandler("") -- 切换主窗口显示
             elseif button == "RightButton" then
-                self:CyclePet() -- 切换追踪宠物
+                self:ShowPetDropdown() -- 显示下拉列表
             end
         end,
         OnTooltipShow = function(tooltip)
-            tooltip:AddLine("|cff2690E7[天堂]|r |cffffffffTamerTracksPetTracker|r")
+            tooltip:AddLine("|cff2690E7驯兽师脚印宠物追踪器|r")
+            tooltip:AddLine("|cffffffff(TamerTracksPetTracker)|r")
             local petName = ns.pets[self.db.global.selectedPet] and ns.pets[self.db.global.selectedPet].name or "未知"
+            tooltip:AddLine(" ")
             tooltip:AddLine("|cff00ecff当前追踪|r: " .. petName)
             tooltip:AddLine(" ")
             tooltip:AddLine("|cffeda55f左键|r: 打开/关闭主窗口")
-            tooltip:AddLine("|cffeda55f右键|r: 快速切换追踪宠物")
+            tooltip:AddLine("|cffeda55f右键|r: 展开选择列表")
         end,
     })
     
@@ -174,32 +176,46 @@ function TamerTracksPetTracker:SetupMinimap()
     end
 end
 
-function TamerTracksPetTracker:CyclePet()
-    -- 获取当前的 PetID 列表
+function TamerTracksPetTracker:ShowPetDropdown()
+    local menu = {
+        { text = "|cff2690E7选择追踪目标|r", isTitle = true, notCheckable = true },
+    }
+    
+    -- 获取当前的 PetID 列表并排序
     local petIDs = {}
     for id in pairs(ns.pets) do
         table.insert(petIDs, id)
     end
     table.sort(petIDs)
     
-    -- 查找当前 PetID 的索引并切换到下一个
-    local currentIndex = 1
-    for i, id in ipairs(petIDs) do
-        if id == self.db.global.selectedPet then
-            currentIndex = i
-            break
-        end
+    for _, id in ipairs(petIDs) do
+        local petInfo = ns.pets[id]
+        table.insert(menu, {
+            text = petInfo.name .. " (" .. petInfo.zone .. ")",
+            func = function()
+                self:SetSelectedPet(id)
+            end,
+            checked = function() return self.db.global.selectedPet == id end,
+        })
     end
     
-    local nextIndex = (currentIndex % #petIDs) + 1
-    self.db.global.selectedPet = petIDs[nextIndex]
-    
-    local petName = ns.pets[self.db.global.selectedPet].name
+    local dropMenu = CreateFrame("Frame", "TamerTracksPetTracker_Dropdown", UIParent, "UIDropDownMenuTemplate")
+    EasyMenu(menu, dropMenu, "cursor", 0, 0, "MENU")
+end
+
+function TamerTracksPetTracker:SetSelectedPet(id)
+    self.db.global.selectedPet = id
+    local petName = ns.pets[id].name
     print(string.format("|cff00ccff[TamerTracksPetTracker]|r: 已切换追踪目标为 -> |cff00ecff%s|r", petName))
     
-    -- 刷新 HUD
-    if self.HUDFrame and self.HUDFrame:IsVisible() and self.UpdateCoordList then 
-        self:UpdateCoordList()
+    -- 刷新 HUD 和 刷新全局状态
+    if self.HUDFrame and self.HUDFrame:IsVisible() then
+        if self.UpdateCoordList then self:UpdateCoordList() end
+        if self.UpdateTitle then self:UpdateTitle() end
+    end
+    
+    if self.RefreshMapLayer then 
+        self:RefreshMapLayer() 
     end
 end
 
