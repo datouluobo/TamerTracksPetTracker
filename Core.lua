@@ -215,22 +215,23 @@ end
 function TamerTracksPetTracker:HookChatLinks()
     local originalSetItemRef = SetItemRef
     SetItemRef = function(link, text, button, chatFrame)
-        if string.sub(link, 1, 12) == "TamerTracksPetTracker" then
+        if link:find("^TamerTracksPetTracker:") then
             local _, petIDStr, senderName = strsplit(":", link, 3)
             local petID = tonumber(petIDStr)
             
             if petID and senderName then
                 local localPlayer = UnitName("player")
                 local shortSender = strsplit("-", senderName)
-                if senderName == localPlayer or shortSender == localPlayer then
+                local fullLocalName = localPlayer .. "-" .. GetRealmName():gsub("%s+", "")
+                if senderName == localPlayer or shortSender == localPlayer or senderName == fullLocalName then
                     print("|cffff0000[TamerTracksPetTracker]|r 对不起，您不能接收导入自己分享在公屏的路线信息。")
-                    return
+                    return true
                 end
                 
                 print(string.format("|cff00ccff[TamerTracksPetTracker]|r 正在通过加密信道向玩家 %s 申请轨迹数据，请稍候...", senderName))
                 self:SendCommMessage("TT_REQ", tostring(petID), "WHISPER", senderName)
             end
-            return
+            return true
         end
         return originalSetItemRef(link, text, button, chatFrame)
     end
