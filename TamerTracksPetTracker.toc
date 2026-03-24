@@ -1,6 +1,6 @@
 ## Interface: 50400
-## Title: |cffff4097[天堂]|r TamerTracksPetTracker
-## Title-zhCN: |cffff4097[天堂]|r 驯兽师脚印宠物追踪器 (TamerTracksPetTracker)
+## Title: |cff2690E7[天堂]|r TamerTracksPetTracker
+## Title-zhCN: |cff2690E7[天堂]|r 驯兽师脚印宠物追踪器 (TamerTracksPetTracker)
 ## Notes: Tracking, alerting, and mapping for hidden hunter pet footprints in Pandaria.
 ## Notes-zhCN: 潘达利亚猎人隐藏稀有宠物足迹追踪、报警与测绘插件。
 ## Author: 天堂暴风
