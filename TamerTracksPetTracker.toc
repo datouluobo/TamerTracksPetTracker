@@ -1,6 +1,6 @@
 ## Interface: 50400
 ## Title: |cff2690E7[天堂]|r TamerTracksPetTracker
-## Title-zhCN: |cff2690E7[天堂]|r 驯兽师脚印宠物追踪器 (TamerTracksPetTracker)
+## Title-zhCN: |cff2690E7[天堂]|r TamerTracksPetTracker - 驯兽师脚印宠物追踪器
 ## Notes: Tracking, alerting, and mapping for hidden hunter pet footprints in Pandaria.
 ## Notes-zhCN: 潘达利亚猎人隐藏稀有宠物足迹追踪、报警与测绘插件。
 ## Author: 天堂暴风
@@ -23,6 +23,8 @@ Libs\LibWindow-1.1\LibWindow-1.1.lua
 Libs\HereBeDragons\HereBeDragons-2.0.lua
 Libs\HereBeDragons\HereBeDragons-Pins-2.0.lua
 Libs\LibDeflate\LibDeflate.lua
+Libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
+Libs\LibDBIcon-1.0\LibDBIcon-1.0.lua
 
 Core.lua
 Data.lua

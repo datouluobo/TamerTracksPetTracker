@@ -9,7 +9,8 @@ local defaults = {
         trackerEnabled = true,
         selectedPet = 50813,
         routes = {},
-        settings = { alertSound = true, alertVisual = true, minDistance = 0.005, breakDistance = 0.05 }
+        settings = { alertSound = true, alertVisual = true, minDistance = 0.005, breakDistance = 0.05 },
+        minimap = { hide = false }
     }
 }
 
@@ -36,6 +37,7 @@ function TamerTracksPetTracker:OnInitialize()
     ChatFrame_AddMessageEventFilter("CHAT_MSG_BN_WHISPER", self.ChatLinkFilter)
     
     self:HookChatLinks()
+    self:SetupMinimap()
 end
 
 function TamerTracksPetTracker.ChatLinkFilter(self, event, msg, ...)
@@ -133,6 +135,71 @@ function TamerTracksPetTracker:RecordCurrentPoint()
     
     if self.RefreshMapLayer then 
         self:RefreshMapLayer() 
+    end
+end
+
+-- ==========================================
+-- 小地图图标与 LDB 支持
+-- ==========================================
+
+function TamerTracksPetTracker:SetupMinimap()
+    local LDB = LibStub("LibDataBroker-1.1", true)
+    if not LDB then return end
+    
+    local MiniIcon = LibStub("LibDBIcon-1.0", true)
+    
+    self.ldb = LDB:NewDataObject("TamerTracksPetTracker", {
+        type = "launcher",
+        text = "TamerTracksPetTracker",
+        icon = "Interface\\Icons\\INV_Pet_Tracking",
+        OnClick = function(proxy, button)
+            if button == "LeftButton" then
+                self:SlashHandler("") -- 切换主窗口显示
+            elseif button == "RightButton" then
+                self:CyclePet() -- 切换追踪宠物
+            end
+        end,
+        OnTooltipShow = function(tooltip)
+            tooltip:AddLine("|cff2690E7[天堂]|r |cffffffffTamerTracksPetTracker|r")
+            local petName = ns.pets[self.db.global.selectedPet] and ns.pets[self.db.global.selectedPet].name or "未知"
+            tooltip:AddLine("|cff00ecff当前追踪|r: " .. petName)
+            tooltip:AddLine(" ")
+            tooltip:AddLine("|cffeda55f左键|r: 打开/关闭主窗口")
+            tooltip:AddLine("|cffeda55f右键|r: 快速切换追踪宠物")
+        end,
+    })
+    
+    if MiniIcon then
+        MiniIcon:Register("TamerTracksPetTracker", self.ldb, self.db.global.minimap)
+    end
+end
+
+function TamerTracksPetTracker:CyclePet()
+    -- 获取当前的 PetID 列表
+    local petIDs = {}
+    for id in pairs(ns.pets) do
+        table.insert(petIDs, id)
+    end
+    table.sort(petIDs)
+    
+    -- 查找当前 PetID 的索引并切换到下一个
+    local currentIndex = 1
+    for i, id in ipairs(petIDs) do
+        if id == self.db.global.selectedPet then
+            currentIndex = i
+            break
+        end
+    end
+    
+    local nextIndex = (currentIndex % #petIDs) + 1
+    self.db.global.selectedPet = petIDs[nextIndex]
+    
+    local petName = ns.pets[self.db.global.selectedPet].name
+    print(string.format("|cff00ccff[TamerTracksPetTracker]|r: 已切换追踪目标为 -> |cff00ecff%s|r", petName))
+    
+    -- 刷新 HUD
+    if self.HUDFrame and self.HUDFrame:IsVisible() and self.UpdateCoordList then 
+        self:UpdateCoordList()
     end
 end
 
